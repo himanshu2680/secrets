@@ -1,12 +1,13 @@
 //jshint -W033, esversion:6
 //f init code
-require('dotenv').config()
+// require('dotenv').config()
 const express = require("express")
 const bodyParser = require('body-parser')
 const ejs = require("ejs")
 const mongoose = require('mongoose')
-const encrypt = require('mongoose-encryption')
-
+const bcrypt = require('bcrypt')
+// const encrypt = require('mongoose-encryption')
+// const md5 = require('md5');
 const app = express()
 
 app.use(express.static("public"))
@@ -23,9 +24,8 @@ const userSchema = new mongoose.Schema({
   password:String
 })
 
-var secret = process.env.SECRET
-
-userSchema.plugin(encrypt, {secret:secret, encryptedFields:['password']})
+// var secret = process.env.SECRET
+// userSchema.plugin(encrypt, {secret:secret, encryptedFields:['password']})
 
 const User = new mongoose.model("User", userSchema)
 
@@ -34,7 +34,7 @@ app.get("/", (req, res)=>{
 })
 
 app.get("/login", (req, res)=>{
-  res.render('login', {})
+  res.render('login', {noMatch:null})
 })
 
 app.get("/register", (req, res)=>{
@@ -42,15 +42,17 @@ app.get("/register", (req, res)=>{
 })
 
 app.post("/register", (req, res)=>{
-  var newUser = new User({
-    username:req.body.username,
-    password:req.body.password
-  })
-  newUser.save((err)=>{
-    if(!err){
-      res.render("secrets")
-    }
-  })
+  bcrypt.hash(req.body.password, 10, function(err, hash) {
+    var newUser = new User({
+      username:req.body.username,
+      password:hash
+    })
+    newUser.save((err)=>{
+      if(!err){
+        res.render("secrets")
+      }
+    })    
+  })  
 })
 
 app.get("/logout", (req, res)=>{
@@ -62,14 +64,17 @@ app.post("/login", (req, res)=>{
     if (err) {
       console.log(err);
     }else {
-      if (found.password==req.body.password) {
-        res.render('secrets')
-      }else {
-        res.send("<h1>You are unauthorised</h1>")
-      }
+      bcrypt.compare(req.body.password, found.password, function(err, result) {
+        if (result===true) {
+          res.render("secrets")
+        }else if(result==false){
+          res.render("login", {noMatch:"Username and password do not match"})
+        }
+      })
     }
   })
 })
+// res.send("<h1>You are unauthorised</h1>")
 
 //f server started
 app.listen(process.env.PORT || 3000, function(){
