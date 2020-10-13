@@ -14,3 +14,26 @@ body {
   color: #fff;
   background-color: #000;
 }
+.fa-google {
+  background: conic-gradient(from -45deg, #ea4335 110deg, #4285f4 90deg 180deg, #34a853 180deg 270deg, #fbbc05 270deg) 73% 55%/150% 150% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  margin-left: 10px;
+}
+.col-sm-8{
+  margin-bottom: 20px;
+}
+div.card-google{
+  padding: 0;
+}
+div.card-body{
+  box-shadow: 5px 5px 5px -5px rgba(0, 0, 0, 0.3);
+}
+a.btn.btn-block{
+  text-align: left;
+}
+span.g-text{
+  margin-left: 40px;
+}

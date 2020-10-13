@@ -1,4 +1,4 @@
-//jshint -W033, esversion:6
+//jshint -W033, esversion:6, -W112
 //f require
 require('dotenv').config()
 const express = require("express")
@@ -33,7 +33,8 @@ mongoose.connect("mongodb://localhost:27017/userDB", {useNewUrlParser:true, useU
 const userSchema = new mongoose.Schema({
   username:String,
   password:String,
-  googleId: String
+  googleId: String,
+  secret: String
 })
 
 userSchema.plugin(passportLocalMongoose)
@@ -59,7 +60,6 @@ passport.use(new GoogleStrategy({
     callbackURL: "http://localhost:3000/auth/google/secrets"
   },
   function(accessToken, refreshToken, profile, cb) {
-    console.log(profile);
     User.findOrCreate({ googleId: profile.id }, function (err, user) {
       return cb(err, user)
     })
@@ -82,6 +82,29 @@ app.get('/auth/google/secrets',
     res.redirect('/secrets')
   }
 )
+
+
+app.get("/submit", (req, res)=>{
+  if (req.isAuthenticated()) {
+    res.render("submit")
+  }else {
+    res.redirect("/login")
+  }
+})
+
+app.post("/submit", (req, res)=>{
+  var secret = req.body.secret
+  User.findById(req.user._id, (err, foundUser)=>{
+    if (err) {
+      console.log(err);
+    }else {
+      if (foundUser) {
+        foundUser.secret = secret
+        foundUser.save((err, saved) => {if(saved && !err){res.redirect("/secrets")}})
+      }
+    }
+  })
+})
 
 
 app.get("/login", (req, res)=>{
@@ -125,12 +148,15 @@ app.post("/register", (req, res)=>{
 
 
 app.get("/secrets", (req, res)=>{
-  if (req.isAuthenticated()) {
-    console.log(req.isAuthenticated())
-    res.render('secrets')
-  }else{
-    res.redirect('/login')
-  }
+  User.find({"secret": {$ne: null}}, function(err, foundUsers){
+    if (err){
+      console.log(err);
+    } else {
+      if (foundUsers) {
+        res.render("secrets", {usersWithSecrets: foundUsers});
+      }
+    }
+  });
 })
 
 
