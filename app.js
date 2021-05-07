@@ -1,5 +1,5 @@
 //jshint -W033, esversion:6, -W112
-//f require
+//fold require
 require('dotenv').config()
 const express = require("express")
 const bodyParser = require('body-parser')
@@ -11,9 +11,9 @@ const passportLocalMongoose = require('passport-local-mongoose')
 const GoogleStrategy = require('passport-google-oauth20').Strategy
 const findOrCreate = require('mongoose-findorcreate')
 const app = express()
-///f require
+///fold require
 
-//f app.use and app.set
+//fold app.use and app.set
 
 app.use(express.static("public"))
 app.set('view engine', 'ejs')
@@ -25,10 +25,10 @@ app.use(session({
 }))
 app.use(passport.initialize())
 app.use(passport.session())
-///f app use and app set
+///fold app.use and app.set
 
-//f mongoose config
-mongoose.connect("mongodb://localhost:27017/userDB", {useNewUrlParser:true, useUnifiedTopology:true, useFindAndModify:false})
+//fold mongoose config
+mongoose.connect("mongodb+srv://himanshuAdmin:Admin123@cluster0.lgfwg.mongodb.net/authSecrets", {useNewUrlParser:true, useUnifiedTopology:true, useFindAndModify:false})
 
 const userSchema = new mongoose.Schema({
   username:String,
@@ -41,9 +41,9 @@ userSchema.plugin(passportLocalMongoose)
 userSchema.plugin(findOrCreate)
 
 const User = new mongoose.model("User", userSchema)
-///f mongoose config
+///fold mongoose config
 
-//f passport+google config
+//fold passport+google config
 passport.use(User.createStrategy())
 
 passport.serializeUser(function(user, done) {done(null, user.id)})
@@ -65,7 +65,7 @@ passport.use(new GoogleStrategy({
     })
   }
 ))
-///f passport config
+///fold passport config
 
 app.get("/", (req, res)=>{
   res.render('home', {})
@@ -112,20 +112,23 @@ app.get("/login", (req, res)=>{
 })
 
 app.post("/login", (req, res)=>{
+  
   const user = new User({
     username:req.body.username,
     password:req.body.password
   })
   req.login(user, (err)=>{
-    if (err) {
-      console.log(err)
+    if(err){
+      console.log(err);
+      res.redirect("/login")
     }else{
-      passport.authenticate("local")(req, res, ()=>{
-        res.redirect("/secrets")
-      })
+      passport.authenticate("local")(req, res, ()=>{res.redirect("/secrets")})
     }
   })
+    
 })
+  
+
 
 
 app.get("/register", (req, res)=>{
@@ -165,8 +168,8 @@ app.get("/logout", (req, res)=>{
   res.redirect("/")
 })
 
-//f server started
+//fold server started
 app.listen(process.env.PORT || 3000, function(){
   console.log("Server started successfully(3000)")
 })
-///f server started
+///fold server started
